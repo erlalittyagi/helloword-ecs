@@ -1,0 +1,40 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: openjdk8
+      docker: 18
+    commands:
+      - pip install --upgrade awscli
+  pre_build:
+    commands:
+      - aws --version
+      - echo Logging into Amazon ECR...
+      - $(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)
+      - IMAGE_NAME=helloworld-service
+      - RESPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.us-east-2.amazonaws.com/$IMAGE_NAME
+      - IMAGE_TAG=v01
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Creating the .jar
+      - mvn clean package
+      - echo Building and tagging image
+      - docker build -t $IMAGE_NAME:latest .
+      - docker tag $IMAGE_NAME:latest $RESPOSITORY_URI:$IMAGE_TAG
+  post_build:
+    commands:
+      - echo Pushing docker image
+      - docker push $RESPOSITORY_URI:$IMAGE_TAG
+      #- echo Preparing CloudFormation Artifacts
+      #- aws s3 cp s3://$ECS_SERVICE_BUCKET/$ECS_SERVICE_KEY task-definition.template
+      #- aws s3 cp s3://$ECS_SERVICE_PARAMS_BUCKET/$ECS_SERVICE_PARAMS_KEY cf-config.json
+      # We assume the parameters json file has IMAGE_NAME_PLACEHOLDER in it, if not this will not work
+      #- sed -i "s/IMAGE_NAME_PLACEHOLDER/$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com\/$(cat ./repo_name):$BRANCH-$(cat ./timestamp)/g" ./cf-config.json
+      - echo Writing image definitions file..
+      - printf '[{"name":"%s","image_uri":"%s"}]' $IMAGE_NAME,  $RESPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+  
+artifacts:
+  files:
+    - imagedefinitions.json
