@@ -13,7 +13,7 @@ phases:
       - echo Logging into Amazon ECR...
       - $(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)
       - IMAGE_NAME=helloworld-service
-      - RESPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.us-east-2.amazonaws.com/$IMAGE_NAME
+      - RESPOSITORY_URI=909533987184.dkr.ecr.us-east-2.amazonaws.com/$IMAGE_NAME
       - IMAGE_TAG=v01
   build:
     commands:
