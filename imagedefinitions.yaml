@@ -1,0 +1,6 @@
+[
+  {
+    "name": "helloworld-service",
+    "imageUri": "909533987184.dkr.ecr.us-east-2.amazonaws.com/helloworld-service:v01"
+  }
+]
